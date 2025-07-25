@@ -1,0 +1,501 @@
+
+<!-- Binance API Key -->
+<!-- API_KEY: k31TkNKee94QVeQ3Bg3gJbkQ9lCbXYc270t3bPsHQZz66zreCsDCPAIujbWY7hT8 -->
+<!-- API_SECRET: ZYx8fgSkwMEgVqKJbSeMNK4r0ewVp0JUPoo8bEpvcEO6spabHVvuhGtrrhGWXU83 -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base target="_self">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NARAN3 – Robô de Trade com IA Avançada</title>
+    <meta name="description" content="Painel de controle do robô de trade automatizado NARAN3 com IA avançada">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1e40af",
+                        secondary: "#1e3a8a",
+                        profit: "#10b981",
+                        loss: "#ef4444",
+                        waiting: "#f59e0b"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full">
+            <h2 class="text-2xl font-bold mb-6 text-center">Acesso Restrito NARAN3</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
+                    <input type="email" id="email" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium mb-1">Senha</label>
+                    <input type="password" id="password" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-md font-medium">Acessar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden container mx-auto px-4 py-6">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold">NARAN3 <span class="text-blue-400">AI Trading Bot</span></h1>
+                <p class="text-gray-400">Robô de Trade com IA Avançada - Binance</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-gray-800 px-3 py-1 rounded-full flex items-center">
+                    <span id="connectionStatus" class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                    <span>Conectado</span>
+                </div>
+                <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm">Sair</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Trading Panel -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Current Trade Info -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Operação Atual</h2>
+                        <div class="flex space-x-2">
+                            <span id="currentStrategy" class="bg-blue-600 px-3 py-1 rounded-full text-sm">Agressiva com correção de candle</span>
+                            <span id="tradeStatus" class="bg-waiting px-3 py-1 rounded-full text-sm">Aguardando</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Ativo</p>
+                            <p id="currentAsset" class="font-bold">BTCUSDT</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Valor Entrada</p>
+                            <p id="entryValue" class="font-bold">R$ 1,00</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Preço Entrada</p>
+                            <p id="entryPrice" class="font-bold">-</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Preço Saída</p>
+                            <p id="exitPrice" class="font-bold">-</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Lucro/Perda</p>
+                            <p id="currentProfit" class="font-bold">-</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Tempo Operação</p>
+                            <p id="tradeTimer" class="font-bold">00:00:00</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Lucro Dia</p>
+                            <p id="dailyProfit" class="font-bold text-profit">R$ 0,00</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <p class="text-gray-400 text-sm">Perda Dia</p>
+                            <p id="dailyLoss" class="font-bold text-loss">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Controls -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4">Controle de Estratégia</h2>
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        <button id="conservativeBtn" class="strategy-btn bg-gray-700 hover:bg-blue-600 px-4 py-2 rounded-md">Conservador</button>
+                        <button id="moderateBtn" class="strategy-btn bg-blue-600 px-4 py-2 rounded-md">Moderado</button>
+                        <button id="aggressiveBtn" class="strategy-btn bg-gray-700 hover:bg-blue-600 px-4 py-2 rounded-md">Agressivo</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">Meta de Lucro Diário (R$)</label>
+                            <input id="profitTarget" type="number" value="1000" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">Limite de Perda Diário (R$)</label>
+                            <input id="lossLimit" type="number" value="50" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2">
+                        </div>
+                        <div class="flex items-center">
+                            <input id="continuousMode" type="checkbox" class="mr-2">
+                            <label for="continuousMode" class="text-gray-400 text-sm">Modo 24 horas contínuo</label>
+                        </div>
+                        <div class="flex justify-end">
+                            <button id="saveSettingsBtn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-md">Salvar Configurações</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trade History -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4">Histórico de Operações</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="text-gray-400 text-left border-b border-gray-700">
+                                    <th class="pb-2">Horário</th>
+                                    <th class="pb-2">Ativo</th>
+                                    <th class="pb-2">Ação</th>
+                                    <th class="pb-2 text-right">Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradeHistory">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="space-y-6">
+                <!-- Binance API Setup -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4">Configuração Binance</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">API Key</label>
+                            <input id="apiKey" type="text" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">API Secret</label>
+                            <input id="apiSecret" type="password" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2">
+                        </div>
+                        <button id="saveApiBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-md">Salvar Credenciais</button>
+                    </div>
+                </div>
+
+                <!-- AI Chat -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg h-full">
+                    <h2 class="text-xl font-semibold mb-4">Assistente de IA</h2>
+                    <div id="chatContainer" class="h-64 overflow-y-auto mb-4 bg-gray-700 rounded-lg p-3 space-y-3">
+                        <div class="bg-gray-600 rounded-lg p-2">
+                            <p class="text-sm text-gray-300">IA: Olá! Sou o assistente de IA do NARAN3. Como posso ajudar?</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <input id="chatInput" type="text" placeholder="Digite sua mensagem..." class="flex-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2">
+                        <button id="sendChatBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md">Enviar</button>
+                    </div>
+                </div>
+
+                <!-- System Alerts -->
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4">Alertas do Sistema</h2>
+                    <div id="alertsContainer" class="space-y-2">
+                        <div class="bg-yellow-900 rounded-lg p-2">
+                            <p class="text-sm">Sistema iniciado e aguardando primeira operação</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security - Only allow authorized email
+        const AUTHORIZED_EMAIL = "narapjl97@gmail.com";
+        const AUTHORIZED_PASSWORD = "Alberto.2";
+        
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const loginForm = document.getElementById('loginForm');
+        const dashboard = document.getElementById('dashboard');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // Trade Data
+        let tradeData = {
+            currentAsset: "BTCUSDT",
+            entryValue: "R$ 1,00",
+            entryPrice: "-",
+            exitPrice: "-",
+            currentProfit: "-",
+            tradeStatus: "Aguardando",
+            currentStrategy: "Agressiva com correção de candle",
+            dailyProfit: "R$ 0,00",
+            dailyLoss: "R$ 0,00",
+            tradeHistory: [
+                { time: "10:23:45", asset: "BTCUSDT", action: "COMPRA", result: "R$ +0,50" },
+                { time: "10:15:30", asset: "ETHUSDT", action: "VENDA", result: "R$ -0,20" },
+                { time: "09:58:12", asset: "BNBUSDT", action: "COMPRA", result: "R$ +0,75" }
+            ],
+            alerts: [
+                "Sistema iniciado e aguardando primeira operação"
+            ]
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if already logged in (in a real app, this would check session/cookie)
+            const isLoggedIn = localStorage.getItem('naran3_logged_in') === 'true';
+            
+            if (isLoggedIn) {
+                loginModal.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                initializeDashboard();
+            }
+            
+            // Setup login form
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                if (email === AUTHORIZED_EMAIL && password === AUTHORIZED_PASSWORD) {
+                    localStorage.setItem('naran3_logged_in', 'true');
+                    loginModal.classList.add('hidden');
+                    dashboard.classList.remove('hidden');
+                    initializeDashboard();
+                    addAlert("Login realizado com sucesso");
+                } else {
+                    alert("Acesso negado. Credenciais inválidas.");
+                }
+            });
+            
+            // Logout button
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('naran3_logged_in');
+                dashboard.classList.add('hidden');
+                loginModal.classList.remove('hidden');
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            });
+        });
+
+        // Initialize dashboard components
+        function initializeDashboard() {
+            // Update trade info
+            updateTradeInfo();
+            
+            // Setup strategy buttons
+            document.querySelectorAll('.strategy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.strategy-btn').forEach(b => b.classList.remove('bg-blue-600'));
+                    this.classList.add('bg-blue-600');
+                    tradeData.currentStrategy = this.textContent;
+                    document.getElementById('currentStrategy').textContent = this.textContent;
+                    addAlert(`Estratégia alterada para: ${this.textContent}`);
+                });
+            });
+            
+            // Setup trade history
+            renderTradeHistory();
+            
+            // Setup chat
+            setupChat();
+            
+            // Start trade timer
+            startTradeTimer();
+            
+            // Simulate trade updates (in real app, this would come from WebSocket)
+            simulateTradeUpdates();
+        }
+
+        function updateTradeInfo() {
+            document.getElementById('currentAsset').textContent = tradeData.currentAsset;
+            document.getElementById('entryValue').textContent = tradeData.entryValue;
+            document.getElementById('entryPrice').textContent = tradeData.entryPrice;
+            document.getElementById('exitPrice').textContent = tradeData.exitPrice;
+            document.getElementById('currentProfit').textContent = tradeData.currentProfit;
+            document.getElementById('tradeStatus').textContent = tradeData.tradeStatus;
+            document.getElementById('currentStrategy').textContent = tradeData.currentStrategy;
+            document.getElementById('dailyProfit').textContent = tradeData.dailyProfit;
+            document.getElementById('dailyLoss').textContent = tradeData.dailyLoss;
+            
+            // Update status color
+            const statusElement = document.getElementById('tradeStatus');
+            statusElement.classList.remove('bg-profit', 'bg-loss', 'bg-waiting');
+            if (tradeData.tradeStatus.includes("Comprando") || tradeData.tradeStatus.includes("Vendendo")) {
+                statusElement.classList.add('bg-profit');
+            } else if (tradeData.tradeStatus.includes("Perda")) {
+                statusElement.classList.add('bg-loss');
+            } else {
+                statusElement.classList.add('bg-waiting');
+            }
+        }
+
+        function renderTradeHistory() {
+            const historyContainer = document.getElementById('tradeHistory');
+            historyContainer.innerHTML = '';
+            
+            tradeData.tradeHistory.forEach(trade => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700';
+                row.innerHTML = `
+                    <td class="py-2">${trade.time}</td>
+                    <td>${trade.asset}</td>
+                    <td>${trade.action}</td>
+                    <td class="text-right ${trade.result.includes('+') ? 'text-profit' : 'text-loss'}">${trade.result}</td>
+                `;
+                historyContainer.appendChild(row);
+            });
+        }
+
+        function addAlert(message) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertElement = document.createElement('div');
+            alertElement.className = 'bg-gray-700 rounded-lg p-2';
+            alertElement.innerHTML = `<p class="text-sm">${new Date().toLocaleTimeString()} - ${message}</p>`;
+            alertsContainer.prepend(alertElement);
+            
+            // Keep only last 10 alerts
+            if (alertsContainer.children.length > 10) {
+                alertsContainer.removeChild(alertsContainer.lastChild);
+            }
+        }
+
+        function startTradeTimer() {
+            let seconds = 0;
+            setInterval(() => {
+                seconds++;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                document.getElementById('tradeTimer').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function setupChat() {
+            const chatInput = document.getElementById('chatInput');
+            const sendChatBtn = document.getElementById('sendChatBtn');
+            const chatContainer = document.getElementById('chatContainer');
+            
+            sendChatBtn.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+                
+                // Add user message
+                const userMessage = document.createElement('div');
+                userMessage.className = 'bg-blue-900 rounded-lg p-2 ml-8';
+                userMessage.innerHTML = `<p class="text-sm text-gray-300">Você: ${message}</p>`;
+                chatContainer.appendChild(userMessage);
+                
+                // Clear input
+                chatInput.value = '';
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Simulate AI response (in real app, this would call GPT-4 API)
+                setTimeout(() => {
+                    const aiResponse = document.createElement('div');
+                    aiResponse.className = 'bg-gray-600 rounded-lg p-2';
+                    
+                    let responseText = "Entendi sua mensagem. Como um robô de trade avançado, posso ajudar a analisar estratégias e tomar decisões.";
+                    if (message.toLowerCase().includes("por que")) {
+                        responseText = "Estou analisando os candles de 1 minuto e os indicadores técnicos. No momento, o mercado está " + 
+                                      (Math.random() > 0.5 ? "mostrando uma tendência clara" : "com movimentos laterais") + 
+                                      ". Minha IA está processando os dados para a próxima operação.";
+                    } else if (message.toLowerCase().includes("estratégia")) {
+                        responseText = `Atualmente estamos no modo ${tradeData.currentStrategy}. ` + 
+                                      "Recomendo " + (tradeData.currentStrategy.includes("Agressivo") ? 
+                                      "manter essa estratégia pois o mercado está volátil" : 
+                                      "considerar uma abordagem mais agressiva para capturar mais oportunidades") + ".";
+                    }
+                    
+                    aiResponse.innerHTML = `<p class="text-sm text-gray-300">IA: ${responseText}</p>`;
+                    chatContainer.appendChild(aiResponse);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        function simulateTradeUpdates() {
+            // Simulate trade status changes
+            const statuses = ["Aguardando", "Comprando BTCUSDT", "Vendendo ETHUSDT", "Operação concluída com lucro", "Operação concluída com perda"];
+            const assets = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT"];
+            
+            setInterval(() => {
+                // Randomly update trade status
+                if (Math.random() > 0.7) {
+                    const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                    tradeData.tradeStatus = newStatus;
+                    
+                    if (newStatus.includes("Comprando") || newStatus.includes("Vendendo")) {
+                        tradeData.currentAsset = assets[Math.floor(Math.random() * assets.length)];
+                        tradeData.entryPrice = (Math.random() * 100000).toFixed(2);
+                        tradeData.currentProfit = "-";
+                    } else if (newStatus.includes("concluída")) {
+                        const profit = (Math.random() * 2 - 0.5).toFixed(2);
+                        tradeData.exitPrice = (parseFloat(tradeData.entryPrice) + (Math.random() * 100 - 50)).toFixed(2);
+                        tradeData.currentProfit = `R$ ${profit}`;
+                        
+                        // Update daily totals
+                        if (profit > 0) {
+                            const current = parseFloat(tradeData.dailyProfit.replace("R$ ", "").replace(",", ""));
+                            tradeData.dailyProfit = `R$ ${(current + parseFloat(profit)).toFixed(2)}`;
+                        } else {
+                            const current = parseFloat(tradeData.dailyLoss.replace("R$ ", "").replace(",", ""));
+                            tradeData.dailyLoss = `R$ ${(current + Math.abs(parseFloat(profit))).toFixed(2)}`;
+                        }
+                        
+                        // Add to history
+                        tradeData.tradeHistory.unshift({
+                            time: new Date().toLocaleTimeString(),
+                            asset: tradeData.currentAsset,
+                            action: newStatus.includes("Comprando") ? "COMPRA" : "VENDA",
+                            result: `R$ ${profit >= 0 ? '+' : ''}${profit}`
+                        });
+                        
+                        // Keep only last 10 trades
+                        if (tradeData.tradeHistory.length > 10) {
+                            tradeData.tradeHistory.pop();
+                        }
+                        
+                        renderTradeHistory();
+                        
+                        // Add alerts for significant events
+                        if (profit > 1) {
+                            addAlert("Meta de lucro atingida na última operação");
+                        } else if (profit < -0.5) {
+                            addAlert("Perda significativa detectada na última operação");
+                        }
+                    }
+                    
+                    updateTradeInfo();
+                }
+                
+                // Random system alerts
+                if (Math.random() > 0.9) {
+                    const alerts = [
+                        "Tendência de alta detectada no BTCUSDT",
+                        "Volume aumentando no ETHUSDT",
+                        "Análise de candle completa para próxima operação",
+                        "IA recomendando mudança para estratégia mais conservadora",
+                        "Mercado volátil - cuidado com operações arriscadas"
+                    ];
+                    addAlert(alerts[Math.floor(Math.random() * alerts.length)]);
+                }
+            }, 5000);
+        }
+
+        // Prevent copying/exporting
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X')) {
+                e.preventDefault();
+                addAlert("Ação de copiar/recortar bloqueada por segurança");
+            }
+        });
+    </script>
+</body>
+</html>

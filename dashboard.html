@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>SalomaBot - Binance Real</title></head>
+<body>
+    <h1>Painel SalomaBot - Conta Real</h1>
+    <form action="/start" method="post">
+        <label>Modo:</label>
+        <select name="modo">
+            <option value="conservador">Conservador</option>
+            <option value="moderado">Moderado</option>
+            <option value="agressivo">Agressivo</option>
+        </select>
+        <button type="submit">Iniciar Ordem</button>
+    </form>
+    <h2>Saldos:</h2>
+    <ul>
+    {% for b in balances %}
+        <li>{{ b.asset }}: {{ b.free }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
